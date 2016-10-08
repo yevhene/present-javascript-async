@@ -49,6 +49,188 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
         </section>
 
         <section>
+          <h2>Concurrency</h2>
+
+          <section>
+            <h3>Multiple request handling</h3>
+
+            <ul>
+              <li>PHP (Server dependent)</li>
+              <li>Java (Framework dependent)</li>
+              <li>Ruby, Python (Fork)</li>
+              <li>Erlang, Elixir (Out of the box)</li>
+              <li>JavaScript (Async)</li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>Asynchronicity</h2>
+
+          <section>
+            <p>Fast controlled context switching</p>
+
+            <img src="img/asynchronicity.svg" />
+          </section>
+
+          <section>
+            <h3>Event Loop</h3>
+
+            <pre><code class="hljs" data-trim>
+while (queue.waitForMessage()){
+  queue.processNextMessage();
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>JavaScript is Asynchorous</h2>
+
+            <ul>
+              <li><b>In Browser</b> because it is single threaded, any code you run on that thread will automatically <b>block your UI</b></li>
+              <li><b>In Node.js</b> because it is single threaded, any code you run on that thread will automatically <b>block your request handling</b></li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>Callbacks</h2>
+
+          <section>
+            <h3>Example</h3>
+
+
+            <pre><code class="hljs" data-trim>
+function userAddress(req, res) {
+  User.findById(req.userId, function(err, user) {
+    Address.findById(user.addressId, function(err, address) {
+      var opts = { address: address };
+      jade.renderFile('address.jade', opts, function (err, html) {
+          res.send(html);
+      });
+    });
+  });
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Extended example</h3>
+
+
+            <pre><code class="hljs" data-trim>
+function userAddress(req, res) {
+  User.findById(req.userId, function(err, user) {
+    Address.findById(user.addressId, function(err, addr) {
+      User.near(addr).findAll(function(err, users) {
+        Place.near(addr).findAll(function(err, places) {
+          var opts = {
+            address: address, users: users, places: places
+          };
+          jade.renderFile('address.jade', opts, function (err, html) {
+              res.send(html);
+          });
+        });
+      });
+    });
+  });
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Pyramid of Doom</h3>
+
+            <img src="img/pyramid-of-doom.png" />
+          </section>
+
+          <section>
+            <h3>Extended example with error handling</h3>
+
+            <pre><code class="hljs" data-trim>
+function userAddress(req, res) {
+  User.findById(req.userId, function(err, user) {
+    if (err) {
+      res.send('Error ' + err.toString());
+      return;
+    }
+
+    Address.findById(user.addressId, function(err, addr) {
+      if (err) {
+        res.send('Error ' + err.toString());
+        return;
+      }
+
+      User.near(addr).findAll(function(err, users) {
+        if (err) {
+          res.send('Error ' + err.toString());
+          return;
+        }
+
+        Place.near(addr).findAll(function(err, places) {
+          if (err) {
+            res.send('Error ' + err.toString());
+            return;
+          }
+          var opts = {
+            address: address, users: users, places: places
+          };
+          jade.renderFile('address.jade', opts, function (err, html) {
+            if (err) {
+              res.send('Error ' + err.toString());
+              return;
+            }
+            res.send(html);
+          });
+        });
+      });
+    });
+  });
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Result</h3>
+
+            <h4>Advantages</h4>
+            <ul>
+              <li>Simplicity</li>
+            </ul>
+
+            <h4>Drawbacks</h4>
+            <ul>
+              <li>Pyramid of Doom</li>
+              <li>Error handling</li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <h2>Promises</h2>
+
+          <p>TODO</p>
+        </section>
+
+        <section>
+          <h2>Generators</h2>
+
+          <p>TODO</p>
+        </section>
+
+        <section>
+          <h2>Async/Await</h2>
+
+          <p>TODO</p>
+        </section>
+
+        <section>
+          <h2>How to use it today?</h2>
+
+          <p>TODO</p>
+        </section>
+
+        <section>
           <h2>Thanks</h2>
         </section>
       </div>
