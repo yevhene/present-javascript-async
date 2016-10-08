@@ -198,6 +198,7 @@ function userAddress(req, res) {
               <li>+ Availability</li>
               <li>- Pyramid of Doom</li>
               <li>- Error handling</li>
+              <li>- Unnatural flow</li>
             </ul>
           </section>
         </section>
@@ -223,18 +224,51 @@ function userAddress(req, res) {
   User
     .findById(req.userId)
     .then(user => Address.findById(user.addressId))
+    .then(address => jade.renderFile('address.jade', { address }))
+    .then(html => res.send(html));
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Extended example</h3>
+
+            <pre><code class="hljs" data-trim>
+function userAddress(req, res) {
+  User
+    .findById(req.userId)
+    .then(user => Address.findById(user.addressId))
     .then(address => Promise.all([
       Promise.resolve(address),
       User.near(address).findAll(),
       Place.near(address).findAll()
     ]))
-    .then(results =>
-      jade.renderFile('address.jade', {
-        address: results[0], users: results[1], places: results[2]
-      })
+    .then([address, users, places] =>
+      jade.renderFile('address.jade', { address, users, places})
+    )
+    .then(html => res.send(html));
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Extended example with error handling</h3>
+
+            <pre><code class="hljs" data-trim>
+function userAddress(req, res) {
+  User
+    .findById(req.userId)
+    .then(user => Address.findById(user.addressId))
+    .then(address => Promise.all([
+      Promise.resolve(address),
+      User.near(address).findAll(),
+      Place.near(address).findAll()
+    ]))
+    .then([address, users, places] =>
+      jade.renderFile('address.jade', { address, users, places})
     )
     .then(html => res.send(html))
-    .catch(err => res.send('Error' + err.toString()))
+    .catch(err => res.send('Error' + err.toString()));
 }
             </code></pre>
           </section>
@@ -260,7 +294,7 @@ function renderFile(file, opts) {
             <small>or</small>
 
             <pre><code class="hljs" data-trim>
-var renderFile = promissify(jade.renderFile);
+const renderFile = promissify(jade.renderFile);
             </code></pre>
           </section>
 
@@ -271,6 +305,7 @@ var renderFile = promissify(jade.renderFile);
               <li>+ No Pyramid of Doom</li>
               <li>+ Smple Error handling</li>
               <li>+ Execution trees</li>
+              <li>- Unnatural flow</li>
             </ul>
           </section>
         </section>
@@ -278,25 +313,241 @@ var renderFile = promissify(jade.renderFile);
         <section>
           <h2>Generators</h2>
 
-          <p>TODO</p>
+          <section>
+            <h3>Generating values</h3>
+
+            <pre><code class="hljs" data-trim>
+// Generator function
+function *seq() {
+  let n = 1;
+  yield n++;
+  yield n++;
+  return n;
+}
+
+const a = seq(); // => Generator object (derived from Iterator)
+const b = seq(); // => Generator object (derived from Iterator)
+a.next(); // => {value: 1, done: false}
+a.next(); // => {value: 2, done: false}
+b.next(); // => {value: 1, done: false}
+a.next(); // => {value: 3, done: true}
+a.next(); // => {value: undefined, done: true}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Advanced usage</h3>
+
+            <pre><code class="hljs" data-trim>
+// Generator function
+function *seq(n) {
+  while (true) {
+    n += (yield n) || 1;
+  }
+}
+
+const a = seq(17); // => Generator object (derived from Iterator)
+a.next(); // => {value: 38, done: false}
+a.next(); // => {value: 39, done: false}
+a.next(8); // => {value: 47, done: false}
+a.return(7) // => {value: 7, done: true}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Example</h3>
+
+            <pre><code class="hljs" data-trim>
+function *userAddress(req, res) {
+  const user = yield User.findById(req.userId);
+  const address = yield Address.findById(user.addressId);
+
+  const html = yield jade.renderFile('address.jade', { address }));
+  yield res.send(html));
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Runner</h3>
+
+            <ul>
+              <li>Runs generator to the end.</li>
+              <li>Evaluates all yielded promisses, generators and thunks. Then returns result or throws error.</li>
+            </ul>
+
+            <pre><code class="hljs" data-trim>
+co(userAddress)
+  .then(function (value) {
+    console.log(value);
+  }, function (err) {
+    console.error(err.stack);
+  });
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Extended example</h3>
+
+            <pre><code class="hljs" data-trim>
+function *userAddress(req, res) {
+  const user = yield User.findById(req.userId);
+  const address = yield Address.findById(user.addressId);
+
+  const [users, places] = yield Promise.all([
+    User.near(address).findAll(),
+    Place.near(address).findAll()
+  ]))
+
+  const html = yield jade.renderFile('address.jade', {
+    address, users, places
+  }));
+  yield res.send(html));
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Errors passing</h3>
+
+            <pre><code class="hljs" data-trim>
+// Generator function
+function *seq(n) {
+  try {
+    yield n;
+  } catch (e) {
+    yield e;
+  }
+}
+
+const a = seq(17); // => Generator object (derived from Iterator)
+a.next(); // => {value: 17, done: false}
+a.throw(4); // => {value: 4, done: false}
+a.next(); // => {value: undefined, done: true}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Extended example with error handling</h3>
+
+            <pre><code class="hljs" data-trim>
+function *userAddress(req, res) {
+  try {
+    const user = yield User.findById(req.userId);
+    const address = yield Address.findById(user.addressId);
+    const [users, places] = yield Promise.all([
+      User.near(address).findAll(),
+      Place.near(address).findAll()
+    ]))
+
+    const html = yield jade.renderFile('address.jade', {
+      address, users, places
+    }));
+    yield res.send(html));
+  } catch (e) {
+    yield res.send('Error' + err.toString()));
+  }
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Advantages/Drawbacks</h3>
+
+            <ul>
+              <li>+ All advantages of Promisses</li>
+              <li>+ Natural flow</li>
+              <li>+ Reclaimed try-catch</li>
+              <li>- It's a hack</li>
+              <li>- Needs custom runner implementation or thrid-party lib</li>
+            </ul>
+          </section>
         </section>
 
         <section>
           <h2>Async/Await</h2>
 
-          <p>TODO</p>
+          <section>
+            <p>ES2017 stadard. Node 7+</p>
+          </section>
+
+          <section>
+            <h3>Example</h3>
+
+            <pre><code class="hljs" data-trim>
+async function userAddress(req, res) {
+  const user = await User.findById(req.userId);
+  const address = await Address.findById(user.addressId);
+
+  const html = await jade.renderFile('address.jade', { address }));
+  await res.send(html));
+}
+            </code></pre>
+
+            <pre><code class="hljs" data-trim>
+userAddress(req, res)
+  .then(/*...*/)
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Advantages/Drawbacks</h3>
+
+            <ul>
+              <li>+ All advantages of Generators</li>
+              <li>+ Language level support</li>
+            </ul>
+          </section>
         </section>
 
         <section>
-          <p>How to use it now?</p>
+          <h2>How to use it now?</h2>
 
-          <p>TODO</p>
+          <h3>Transplitting (Babel)</h3>
+
+          <pre><code class="hljs" data-trim>
+function *seq() {
+  let n = yield 17;
+  yield 18 + n;
+}
+          </code></pre>
+          <pre><code class="hljs" data-trim>
+"use strict";
+
+var _marked = [seq].map(regeneratorRuntime.mark);
+
+function seq() {
+  var n;
+  return regeneratorRuntime.wrap(function seq$(_context) {
+    while (1) {
+      switch (_context.prev = _context.next) {
+        case 0:
+          _context.next = 2;
+          return 17;
+
+        case 2:
+          n = _context.sent;
+          _context.next = 5;
+          return 18 + n;
+
+        case 5:
+        case "end":
+          return _context.stop();
+      }
+    }
+  }, _marked[0], this);
+}
+          </code></pre>
         </section>
 
         <section>
           <p>Credits</p>
 
-          <p>TODO</p>
+          <ul>
+            <li><a href="https://github.com/getify/You-Dont-Know-JS/blob/master/async%20&%20performance/README.md#you-dont-know-js-async--performance">You Don't Know JS: Async & Performance</a></li>
+            <li><a href="https://developer.mozilla.org/en/docs/Web/JavaScript">MDN (Mozilla Developer Network) JavaScript</a></li>
+            <li><a href="http://www.ecma-international.org/ecma-262/6.0/">ECMAScript® 2015 Language Specification</a></li>
+          </ul>
         </section>
 
         <section>
