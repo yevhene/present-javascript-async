@@ -121,9 +121,9 @@ function userAddress(req, res) {
             <pre><code class="hljs" data-trim>
 function userAddress(req, res) {
   User.findById(req.userId, function(err, user) {
-    Address.findById(user.addressId, function(err, addr) {
-      User.near(addr).findAll(function(err, users) {
-        Place.near(addr).findAll(function(err, places) {
+    Address.findById(user.addressId, function(err, address) {
+      User.near(address).findAll(function(err, users) {
+        Place.near(address).findAll(function(err, places) {
           var opts = {
             address: address, users: users, places: places
           };
@@ -155,19 +155,19 @@ function userAddress(req, res) {
       return;
     }
 
-    Address.findById(user.addressId, function(err, addr) {
+    Address.findById(user.addressId, function(err, address) {
       if (err) {
         res.send('Error ' + err.toString());
         return;
       }
 
-      User.near(addr).findAll(function(err, users) {
+      User.near(address).findAll(function(err, users) {
         if (err) {
           res.send('Error ' + err.toString());
           return;
         }
 
-        Place.near(addr).findAll(function(err, places) {
+        Place.near(address).findAll(function(err, places) {
           if (err) {
             res.send('Error ' + err.toString());
             return;
@@ -191,17 +191,13 @@ function userAddress(req, res) {
           </section>
 
           <section>
-            <h3>Result</h3>
+            <h3>Advantages/Drawbacks</h3>
 
-            <h4>Advantages</h4>
             <ul>
-              <li>Simplicity</li>
-            </ul>
-
-            <h4>Drawbacks</h4>
-            <ul>
-              <li>Pyramid of Doom</li>
-              <li>Error handling</li>
+              <li>+ Simplicity</li>
+              <li>+ Availability</li>
+              <li>- Pyramid of Doom</li>
+              <li>- Error handling</li>
             </ul>
           </section>
         </section>
@@ -209,7 +205,74 @@ function userAddress(req, res) {
         <section>
           <h2>Promises</h2>
 
-          <p>TODO</p>
+          <section>
+            <h3>Definition</h3>
+
+            <p>The <b>Promise</b> object is used for asynchronous computations. A <b>Promise</b> represents a value which may be available now, or in the future, or never.</p>
+
+            <pre><code class="hljs" data-trim>
+new Promise( /* executor */ function(resolve, reject) { ... } );
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Example</h3>
+
+            <pre><code class="hljs" data-trim>
+function userAddress(req, res) {
+  User
+    .findById(req.userId)
+    .then(user => Address.findById(user.addressId))
+    .then(address => Promise.all([
+      Promise.resolve(address),
+      User.near(address).findAll(),
+      Place.near(address).findAll()
+    ]))
+    .then(results =>
+      jade.renderFile('address.jade', {
+        address: results[0], users: results[1], places: results[2]
+      })
+    )
+    .then(html => res.send(html))
+    .catch(err => res.send('Error' + err.toString()))
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Wrapping callback</h3>
+
+            <pre><code class="hljs" data-trim>
+function renderFile(file, opts) {
+  return new Promise(function (resolve, reject) {
+    jade.renderFile(file, opts, function(err, html) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve(html);
+    });
+  });
+}
+            </code></pre>
+
+            <small>or</small>
+
+            <pre><code class="hljs" data-trim>
+var renderFile = promissify(jade.renderFile);
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Advantages/Drawbacks</h3>
+
+            <ul>
+              <li>+ No Pyramid of Doom</li>
+              <li>+ Smple Error handling</li>
+              <li>+ Execution trees</li>
+            </ul>
+          </section>
         </section>
 
         <section>
@@ -225,7 +288,13 @@ function userAddress(req, res) {
         </section>
 
         <section>
-          <h2>How to use it today?</h2>
+          <p>How to use it now?</p>
+
+          <p>TODO</p>
+        </section>
+
+        <section>
+          <p>Credits</p>
 
           <p>TODO</p>
         </section>
