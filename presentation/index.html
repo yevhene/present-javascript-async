@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
 
-    <title>Redux</title>
+    <title>Asynchronous JavaScript</title>
 
     <meta name="description" content="Presentation">
     <meta name="author" content="Yevhen Shemet">
@@ -52,7 +52,7 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
           <h2>Concurrency</h2>
 
           <section>
-            <h3>Multiple request handling</h3>
+            <h3>BackEnd: Multiple request handling</h3>
 
             <ul>
               <li>PHP (Server dependent)</li>
@@ -61,6 +61,10 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
               <li>Erlang, Elixir (Out of the box)</li>
               <li>JavaScript (Async)</li>
             </ul>
+          </section>
+
+          <section>
+            <h3>FrontEnd: Concurrent task execution</h3>
           </section>
         </section>
 
@@ -105,7 +109,7 @@ function userAddress(req, res) {
   User.findById(req.userId, function(err, user) {
     Address.findById(user.addressId, function(err, address) {
       var opts = { address: address };
-      jade.renderFile('address.jade', opts, function (err, html) {
+      jade.renderFile('address.jade', opts, function(err, html) {
           res.send(html);
       });
     });
@@ -127,7 +131,7 @@ function userAddress(req, res) {
           var opts = {
             address: address, users: users, places: places
           };
-          jade.renderFile('address.jade', opts, function (err, html) {
+          jade.renderFile('address.jade', opts, function(err, html) {
               res.send(html);
           });
         });
@@ -175,7 +179,7 @@ function userAddress(req, res) {
           var opts = {
             address: address, users: users, places: places
           };
-          jade.renderFile('address.jade', opts, function (err, html) {
+          jade.renderFile('address.jade', opts, function(err, html) {
             if (err) {
               res.send('Error ' + err.toString());
               return;
@@ -278,7 +282,7 @@ function userAddress(req, res) {
 
             <pre><code class="hljs" data-trim>
 function renderFile(file, opts) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function(resolve, reject) {
     jade.renderFile(file, opts, function(err, html) {
       if (err) {
         reject(err);
@@ -303,9 +307,10 @@ const renderFile = promissify(jade.renderFile);
 
             <ul>
               <li>+ No Pyramid of Doom</li>
-              <li>+ Smple Error handling</li>
+              <li>+ Simple Error handling</li>
               <li>+ Execution trees</li>
-              <li>- Unnatural flow</li>
+              <li>- Not fully natural flow</li>
+              <li>- Scoping</li>
             </ul>
           </section>
         </section>
@@ -340,7 +345,7 @@ a.next(); // => {value: undefined, done: true}
 
             <pre><code class="hljs" data-trim>
 // Generator function
-function *seq(n) {
+function *seq(n = 1) {
   while (true) {
     n += (yield n) || 1;
   }
@@ -355,20 +360,6 @@ a.return(7) // => {value: 7, done: true}
           </section>
 
           <section>
-            <h3>Example</h3>
-
-            <pre><code class="hljs" data-trim>
-function *userAddress(req, res) {
-  const user = yield User.findById(req.userId);
-  const address = yield Address.findById(user.addressId);
-
-  const html = yield jade.renderFile('address.jade', { address }));
-  yield res.send(html));
-}
-            </code></pre>
-          </section>
-
-          <section>
             <h3>Runner</h3>
 
             <ul>
@@ -377,12 +368,26 @@ function *userAddress(req, res) {
             </ul>
 
             <pre><code class="hljs" data-trim>
-co(userAddress)
-  .then(function (value) {
+co(userAddress(req, res))
+  .then(function(value) {
     console.log(value);
-  }, function (err) {
+  }, function(err) {
     console.error(err.stack);
   });
+            </code></pre>
+          </section>
+
+          <section>
+            <h3>Example</h3>
+
+            <pre><code class="hljs" data-trim>
+function *userAddress(req, res) {
+  const user = yield User.findById(req.userId);
+  const address = yield Address.findById(user.addressId);
+
+  const html = yield jade.renderFile('address.jade', { address }));
+  res.send(html);
+}
             </code></pre>
           </section>
 
@@ -397,12 +402,12 @@ function *userAddress(req, res) {
   const [users, places] = yield Promise.all([
     User.near(address).findAll(),
     Place.near(address).findAll()
-  ]))
+  ]));
 
   const html = yield jade.renderFile('address.jade', {
     address, users, places
   }));
-  yield res.send(html));
+  res.send(html);
 }
             </code></pre>
           </section>
@@ -443,9 +448,9 @@ function *userAddress(req, res) {
     const html = yield jade.renderFile('address.jade', {
       address, users, places
     }));
-    yield res.send(html));
+    res.send(html));
   } catch (e) {
-    yield res.send('Error' + err.toString()));
+    res.send('Error' + err.toString()));
   }
 }
             </code></pre>
@@ -459,7 +464,7 @@ function *userAddress(req, res) {
               <li>+ Natural flow</li>
               <li>+ Reclaimed try-catch</li>
               <li>- It's a hack</li>
-              <li>- Needs custom runner implementation or thrid-party lib</li>
+              <li>- Needs custom runner implementation or third-party lib</li>
             </ul>
           </section>
         </section>
@@ -480,7 +485,7 @@ async function userAddress(req, res) {
   const address = await Address.findById(user.addressId);
 
   const html = await jade.renderFile('address.jade', { address }));
-  await res.send(html));
+  res.send(html));
 }
             </code></pre>
 
@@ -504,20 +509,20 @@ userAddress(req, res)
           <h2>Where to use it now?</h2>
 
           <section>
-            <h3>FrontEnd</h3>
-
-            <ul>
-              <li>Redux Saga</li>
-              <li>Adonis.js</li>
-            </ul>
-          </section>
-
-          <section>
             <h3>BackEnd</h3>
 
             <ul>
               <li>koa.js (express.js successor)</li>
               <li>task.js</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>FrontEnd</h3>
+
+            <ul>
+              <li>Redux Saga</li>
+              <li>Adonis.js</li>
             </ul>
           </section>
         </section>
@@ -566,7 +571,7 @@ function seq() {
           <h2>Who uses it now?</h2>
 
           <section>
-            <h3>Everybody</h3>
+            <h3>You (in nearest future)</h3>
           </section>
 
           <section>
