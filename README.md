@@ -1,4 +1,4 @@
-# Presentation Redux
+# Presentation JavaScript Async
 
 Prepare:
 ```
@@ -9,5 +9,3 @@ Start:
 ```
 npm start
 ```
-
-[Sources](/src)

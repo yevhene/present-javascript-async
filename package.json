@@ -1,8 +1,8 @@
 {
-  "name": "present-redux",
+  "name": "present-javascript-async",
   "version": "1.0.0",
-  "description": "Reduxz Presentation",
-  "homepage": "https://present-redux.herokuapp.com",
+  "description": "JavaScript Async Presentation",
+  "homepage": "https://present-javascript-async.herokuapp.com",
   "scripts": {
     "start": "node app"
   },
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/yevhene/present-redux.git"
+    "url": "git://github.com/yevhene/present-javascript-async.git"
   },
   "engines": {
     "node": "~6.2.2"
